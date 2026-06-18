@@ -1,0 +1,26 @@
+{
+  "dataset": "ENCODE GM12878 Hi-C",
+  "normalization": "KR",
+  "assembly": "GRCh38",
+  "encode_accession": "ENCSR000AOK",
+  "hierarchical_tokenization": {
+    "coarse_bin_bp": 250000,
+    "fine_bin_bp": 10000,
+    "description": "250-kb coarse bins refined to 10-kb contact resolution"
+  },
+  "model_defaults": {
+    "d_model": 512,
+    "K": 32,
+    "n_bins": 25,
+    "seed": 42,
+    "rank_ablation": [8, 16, 32, 64]
+  },
+  "loss_strata": {
+    "diagonal": {"min_dist": 0, "max_dist": 0},
+    "short": {"min_dist": 1, "max_dist": 3},
+    "mid": {"min_dist": 4, "max_dist": 8},
+    "long": {"min_dist": 9, "max_dist": null}
+  },
+  "baselines": ["Akita", "DeepC", "LowRankFactorized"],
+  "epsilon": 1e-6
+}

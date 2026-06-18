@@ -1,0 +1,17 @@
+{
+  "paper_title": "Hierarchical Genomic Tokenization and Structured PSD Covariance Operators",
+  "dataset": "ENCODE GM12878 Hi-C KR-normalized",
+  "rank_ablation_placeholder": {
+    "description": "Insert ablation results after full ENCODE run",
+    "K_values": [8, 16, 32, 64],
+    "metrics": ["frobenius_rel_error", "psd_valid"]
+  },
+  "basis_ablation": {
+    "fourier": "default",
+    "random_orthonormal": "ablation flag --basis random"
+  },
+  "loss_ablation": {
+    "stratified_frobenius": "default",
+    "mse": "flag --loss mse"
+  }
+}

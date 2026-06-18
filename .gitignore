@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+data/matrices/*.npy
+data/matrices/*.h5
+!data/matrices/.gitkeep
+raw_outputs/*.json
+!raw_outputs/.gitkeep
+checkpoints/*.pt
+!checkpoints/.gitkeep
