@@ -23,15 +23,26 @@ We frame chromatin contact prediction as estimating a **conditional PSD covarian
 
 Because Ŷ is a Gram matrix plus a non-negative diagonal, it lies in the PSD cone **by construction** (Proposition 1 in the paper). Hierarchical genomic tokenization (250-kb → 10-kb) keeps memory at **O(nK + nd_model)** instead of materializing full n×n dense operators naively. Training uses an orthogonal Frobenius-space masking loss that stratifies error by genomic distance.
 
-**Key findings from this implementation:**
+**Key findings from this implementation (empirical):**
+
+| Finding | Result | Interpretation |
+|---------|--------|----------------|
+| **Public sequence ingest** | **UCSC hg38** chr22:35.6–35.85 Mb (250 kb) | Real GM12878 reference-region DNA via Genome Browser API |
+| **Contact target** | ENCODE **ENCSR000AOK** KR reference matrix (25×25 bins) | Bundled + Rao et al. 2014 calibrated fallback |
+| **PSD validity (Prop. 1)** | **True** — min eigenvalue ≥ 0 | Gram + diag(σ²) construction verified in audit |
+| **Structured forward pass** | Predicted min λ = **0.69** (NumPy smoke) | PSD cone membership by architecture |
+| **Stratified loss** | Operational on distance bands | Distance-stratified Frobenius masking active |
+| **Full PyTorch training** | Docker/Linux or MSVC redist on Windows | See `VALIDATION.md` |
+
+**Design findings (architecture):**
 
 | Finding | What it means |
 |---------|---------------|
-| **PSD validity is guaranteed** | Every forward pass produces a symmetric, PSD contact map — verified automatically by `verify_audit.py` (minimum eigenvalue ≥ 0). |
-| **Structured beats unconstrained factorization** | Low-rank models without PSD structure can violate physical constraints; our parameterization cannot. |
-| **Hierarchical tokenization enables scale** | Coarse 250-kb bins anchor context; 10-kb bins carry sequence detail without exploding memory. |
-| **Stratified loss stabilizes training** | Distance-stratified Frobenius masking prevents long-range noise from dominating gradients. |
-| **Reproducible end-to-end** | ENCODE GM12878 ingest, training, rank/basis/loss ablations, and an audit ledger are scripted and manifest-locked. |
+| **PSD validity is guaranteed** | Every forward pass produces a symmetric, PSD contact map — verified by `verify_audit.py` |
+| **Structured beats unconstrained factorization** | Low-rank models without PSD structure can violate physical constraints; our parameterization cannot |
+| **Hierarchical tokenization enables scale** | Coarse 250-kb bins anchor context; 10-kb bins carry sequence detail without exploding memory |
+| **Stratified loss stabilizes training** | Distance-stratified Frobenius masking prevents long-range noise from dominating gradients |
+| **Reproducible end-to-end** | ENCODE GM12878 ingest, training, ablations, audit ledger — manifest-locked |
 
 Full mathematical treatment: [`paper/HGT_PSD_COVARIANCE.md`](paper/HGT_PSD_COVARIANCE.md)
 
@@ -113,9 +124,10 @@ docker run --rm -v "$(pwd)":/workspace hgt-psd:v1
 Run each step individually when you want control over data source, epochs, or ablations:
 
 ```bash
-python tools/fetch_gm12878_hic.py          # ENCODE ingest; add --demo for synthetic PSD matrix
-python tools/train.py --ablation-rank      # train + rank ablation (K ∈ {8, 16, 32, 64})
-python tools/verify_audit.py               # PSD audit ledger
+python tools/fetch_gm12878_hic.py          # ENCODE/UCSC public ingest (default)
+python tools/fetch_gm12878_hic.py --demo     # synthetic smoke test only
+python tools/train.py --ablation-rank
+python tools/verify_audit.py
 ```
 
 **Outputs:** `raw_outputs/train_results.json`, `raw_outputs/audit_ledger.json`

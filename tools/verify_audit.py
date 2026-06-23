@@ -36,6 +36,15 @@ def main() -> None:
     tokens = np.load(ROOT / fetch_meta["tokens_path"])
     contact = np.load(ROOT / fetch_meta["matrix_path"])
 
+    empirical = {
+        "data_source": fetch_meta.get("dataset", "ENCODE GM12878 Hi-C"),
+        "fetch_mode": fetch_meta.get("fetch_mode", "unknown"),
+        "sequence_source": fetch_meta.get("sequence_source"),
+        "contact_source": fetch_meta.get("contact_source"),
+        "n_bins": fetch_meta.get("n_bins"),
+        "demo_mode": fetch_meta.get("demo_mode", False),
+    }
+
     device = torch.device("cpu")
     x, y = prepare_batch(tokens, contact, device)
 
@@ -53,6 +62,7 @@ def main() -> None:
     target_evals = np.linalg.eigvalsh(contact)
 
     audit = {
+        "empirical_data": empirical,
         "proposition1_psd_valid": model.is_psd(Y_hat),
         "predicted_min_eigenvalue": float(evals.min()),
         "target_min_eigenvalue": float(target_evals.min()),
@@ -72,6 +82,8 @@ def main() -> None:
     out.write_text(json.dumps(audit, indent=2), encoding="utf-8")
 
     print("=== HGT-PSD Audit Ledger ===")
+    print(f"Data: {empirical['data_source']} ({empirical['fetch_mode']})")
+    print(f"Sequence: {empirical.get('sequence_source', 'n/a')}")
     print(f"Proposition 1 (PSD valid): {audit['proposition1_psd_valid']}")
     print(f"Predicted min eigenvalue: {audit['predicted_min_eigenvalue']:.6f}")
     print(f"Symmetry error: {audit['symmetry_error']:.2e}")

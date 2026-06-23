@@ -61,18 +61,24 @@ def main() -> None:
     manifest = load_manifest(ROOT / "manifests" / "gm12878_hic.json")
     n = manifest["model_defaults"]["n_bins"]
     seed = manifest["model_defaults"]["seed"]
-    rng = np.random.default_rng(seed)
 
     OUT = ROOT / "data" / "matrices"
     OUT.mkdir(parents=True, exist_ok=True)
-    contact = synthesize_psd_contact_matrix(n=n, rank=8, seed=seed)
-    save_matrix(OUT / "gm12878_contact.npy", contact)
-
-    seq = synthesize_sequence(250_000, seed=seed)
-    (OUT / "gm12878_sequence.txt").write_text(seq, encoding="utf-8")
-    tok = HierarchicalGenomicTokenizer()
-    tokens = tok.tokenize_region(seq, n)
-    np.save(OUT / "gm12878_tokens.npy", tokens)
+    fetch_path = ROOT / "raw_outputs" / "fetch_manifest.json"
+    if fetch_path.exists() and not json.loads(fetch_path.read_text()).get("demo_mode", True):
+        fetch_meta = json.loads(fetch_path.read_text())
+        contact = np.load(ROOT / fetch_meta["matrix_path"])
+        tokens = np.load(ROOT / fetch_meta["tokens_path"])
+        empirical_note = fetch_meta.get("fetch_mode", "public")
+    else:
+        contact = synthesize_psd_contact_matrix(n=n, rank=8, seed=seed)
+        save_matrix(OUT / "gm12878_contact.npy", contact)
+        seq = synthesize_sequence(250_000, seed=seed)
+        (OUT / "gm12878_sequence.txt").write_text(seq, encoding="utf-8")
+        tok = HierarchicalGenomicTokenizer()
+        tokens = tok.tokenize_region(seq, n)
+        np.save(OUT / "gm12878_tokens.npy", tokens)
+        empirical_note = "demo_fallback"
 
     np.random.seed(seed)
     Y_hat = structured_psd_numpy(tokens, K=manifest["model_defaults"]["K"], n=n)
@@ -83,6 +89,7 @@ def main() -> None:
 
     audit = {
         "mode": "numpy_smoke",
+        "empirical_fetch_mode": empirical_note,
         "proposition1_psd_valid": bool(psd_ok),
         "min_eigenvalue": float(evals.min()),
         "frobenius_rel_error": float(rel_err),
@@ -93,13 +100,14 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(audit, indent=2), encoding="utf-8")
 
-    fetch_meta = {
-        "demo_mode": True,
-        "matrix_path": "data/matrices/gm12878_contact.npy",
-        "tokens_path": "data/matrices/gm12878_tokens.npy",
-        "numpy_smoke": True,
-    }
-    (ROOT / "raw_outputs" / "fetch_manifest.json").write_text(json.dumps(fetch_meta, indent=2))
+    if not fetch_path.exists() or json.loads(fetch_path.read_text()).get("demo_mode", True):
+        fetch_meta = {
+            "demo_mode": True,
+            "matrix_path": "data/matrices/gm12878_contact.npy",
+            "tokens_path": "data/matrices/gm12878_tokens.npy",
+            "numpy_smoke": True,
+        }
+        fetch_path.write_text(json.dumps(fetch_meta, indent=2))
 
     print("=== NumPy Smoke Test ===")
     print(f"PSD valid: {psd_ok}")

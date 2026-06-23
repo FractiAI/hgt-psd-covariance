@@ -14,7 +14,7 @@ fi
 
 export PYTHONPATH="$ROOT/src/python"
 
-python tools/fetch_gm12878_hic.py --demo
+python tools/fetch_gm12878_hic.py
 python tools/train.py --epochs 60 --ablation-rank
 python tools/verify_audit.py
 

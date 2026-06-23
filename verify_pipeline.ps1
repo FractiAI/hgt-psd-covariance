@@ -20,7 +20,7 @@ try {
 
 if ($torchOk) {
     Write-Host "=== PyTorch pipeline ==="
-    & $py tools\fetch_gm12878_hic.py --demo
+    & $py tools\fetch_gm12878_hic.py
     & $py tools\train.py --epochs 60 --ablation-rank
     & $py tools\verify_audit.py
 } else {
