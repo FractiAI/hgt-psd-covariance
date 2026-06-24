@@ -46,6 +46,12 @@ Because Ŷ is a Gram matrix plus a non-negative diagonal, it lies in the PSD con
 
 Full mathematical treatment: [`paper/HGT_PSD_COVARIANCE.md`](paper/HGT_PSD_COVARIANCE.md)
 
+### Recursive attention loop anchor (June 2026)
+
+**Synthesis:** [WP-2026-ATTENTION-RECURSIVE-LOOP](https://www.ssvibelandiaquestfest24x365.com/whitepaper/recursive-attention-loop) · Catalog: [FractiAI/psw.vibelandia.sing13](https://github.com/FractiAI/psw.vibelandia.sing13)
+
+**Layer:** `dna_contacts` · **Validation tier:** `causal_support_preliminary` · Run integrated checks: `npm run research:recursive-attention-causality` in catalog repo.
+
 ---
 
 ## Primer — concepts before you run anything
